@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crosslinks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a short start card, then a two-column board of six puzzle cards that feed a full-width final puzzle. */
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --ink:#18202F; --muted:#556073; --line:#D3D9E4;
+  --accent:#1D6B88; --accent-ink:#FFFFFF; --hl:#F6C744; --hl-ink:#18202F;
+  --ok:#1C7F52; --ok-bg:#E1F3EA; --bad:#B8323F; --pen:#8A5A00; --pen-bg:#FFF3D6;
+  --display:"Familjen Grotesk","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F141E; --surface:#171F2D; --ink:#E7ECF4; --muted:#9BA6BA; --line:#283347;
+  --accent:#6CC3DE; --accent-ink:#0B1820; --hl:#F6C744; --hl-ink:#18202F;
+  --ok:#4FD18F; --ok-bg:#12302A; --bad:#FF7A88; --pen:#F2B852; --pen-bg:#33290F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141E; --surface:#171F2D; --ink:#E7ECF4; --muted:#9BA6BA; --line:#283347;
+  --accent:#6CC3DE; --accent-ink:#0B1820; --hl:#F6C744; --hl-ink:#18202F;
+  --ok:#4FD18F; --ok-bg:#12302A; --bad:#FF7A88; --pen:#F2B852; --pen-bg:#33290F; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.6rem,8vw,4.2rem);line-height:.95;letter-spacing:-.02em}
+h2{font-size:1.35rem;line-height:1.2}
+p{margin:0}
+button,input{font:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+
+/* start */
+.start{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px;max-width:680px;width:100%;margin:8vh auto 0}
+.intro{font-family:var(--display);font-weight:500;font-size:clamp(1.3rem,3.6vw,1.6rem);line-height:1.3;text-wrap:balance}
+.start form{display:flex;flex-direction:column;gap:10px}
+.start label{font-weight:700}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.field{flex:1 1 200px;min-width:0;font-size:1.05rem;padding:11px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* status */
+.status{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1.5px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;padding-block:12px}
+.status .team{font-family:var(--display);font-weight:700;font-size:1.2rem;margin-right:auto;min-width:0;overflow-wrap:anywhere}
+.stat{color:var(--muted);font-size:.95rem}
+.stat b{color:var(--ink);font-variant-numeric:tabular-nums;font-size:1.1rem}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:860px){.board{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0;scroll-margin-top:90px}
+.card.solved{border-color:var(--ok)}
+.chead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.badge{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;
+  border:2px solid var(--ink);flex-shrink:0}
+.card.solved .badge{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ctitle{display:flex;flex-direction:column;min-width:0}
+.ctype{font-size:.85rem;color:var(--muted)}
+.helps{margin-left:auto;font-size:.82rem;color:var(--muted);background:var(--bg);border-radius:999px;padding:3px 10px}
+.cbody{display:flex;flex-direction:column;gap:10px}
+.cbody ol{margin:0;padding-left:1.4em;display:grid;gap:6px}
+.note{color:var(--muted);font-size:.95rem}
+.cipher{font-family:var(--mono);font-size:clamp(1.1rem,3.6vw,1.5rem);letter-spacing:.12em;line-height:1.7;background:var(--bg);border-radius:10px;padding:12px 14px;overflow-wrap:anywhere}
+.seq{display:flex;flex-wrap:wrap;gap:6px}
+.seq span{width:38px;height:44px;border-radius:8px;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.seq span.gap{border:2px dashed var(--accent);color:var(--accent);font-weight:700}
+.exprs{display:flex;flex-wrap:wrap;gap:10px}
+.exprs span{font-family:var(--mono);font-size:1.3rem;padding:8px 14px;border-radius:8px;border:1.5px solid var(--line)}
+.tiles{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.tile{width:34px;height:38px;border-radius:7px;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:1.15rem}
+.tile.hl{background:var(--hl);border-color:var(--hl);color:var(--hl-ink)}
+.tiles .arrow{color:var(--muted);padding:0 4px}
+.answer{display:flex;gap:8px;flex-wrap:wrap}
+.answer input{flex:1 1 160px;min-width:0;font-size:1.05rem;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);text-transform:uppercase}
+.fb{min-height:1.4em;font-weight:700;font-size:.95rem}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.bonus{background:var(--ok-bg);border-radius:10px;padding:10px 14px}
+.bonus b{color:var(--ok)}
+.hintrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hintbtn{background:transparent;border:1.5px solid var(--pen);color:var(--pen);border-radius:8px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:.88rem}
+.hinttext{background:var(--pen-bg);color:var(--ink);border-radius:10px;padding:10px 14px}
+.hinttext b{color:var(--pen)}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+
+/* final */
+.final{border:2px solid var(--ink)}
+.final .tiles .tile{width:46px;height:52px;font-size:1.5rem}
+.finish{background:var(--ok-bg);border:2px solid var(--ok);border-radius:16px;padding:22px;text-align:center;display:flex;flex-direction:column;gap:6px}
+.code{font-family:var(--display);font-weight:700;font-size:clamp(2.4rem,9vw,3.4rem);letter-spacing:.16em;color:var(--ok);font-variant-numeric:tabular-nums}
+
+/* host */
+footer{text-align:center}
+.linkish{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:6px}
+dialog{border:0;border-radius:16px;background:var(--surface);color:var(--ink);padding:0;width:min(560px,calc(100% - 32px));max-height:calc(100% - 40px)}
+dialog::backdrop{background:rgba(8,12,22,.55)}
+.dlg{padding:22px;display:flex;flex-direction:column;gap:12px}
+.dlg h3{font-size:1.05rem;margin-top:8px}
+.dlg .note{margin:0}
+.key{margin:0;padding-left:1.4em}
+.result{font-weight:700;min-height:1.4em}
+.result.ok{color:var(--ok)} .result.bad{color:var(--bad)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="start" id="startView" hidden>
+    <p class="intro">Six puzzles, one final word. Some puzzles give hints to others, but you can solve in any order. Good luck!</p>
+    <form id="startForm">
+      <label for="teamName">Team name</label>
+      <div class="row">
+        <input id="teamName" class="field" maxlength="30" autocomplete="off" required placeholder="e.g. Fermi Estimators">
+        <button class="btn" type="submit">Ready to begin?</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="gameView" hidden>
+    <div class="finish" id="finish" hidden>
+      <h2>Final word found</h2>
+      <p>Post your team name and this code in the chat.</p>
+      <div class="code" id="finishCode"></div>
+      <p id="finishMeta"></p>
+    </div>
+
+    <div class="status">
+      <span class="team" id="teamLabel"></span>
+      <span class="stat">Time <b id="timer">0:00</b></span>
+      <span class="stat">Solved <b id="solvedCount">0/6</b></span>
+      <span class="stat">Hints <b id="hintCount">0</b></span>
+    </div>
+
+    <div class="board" style="margin-top:22px">
+
+      <article class="card" id="p1" data-n="1">
+        <div class="chead"><span class="badge">1</span><div class="ctitle"><span class="ctype">Logic</span><h2>Medal count</h2></div><span class="helps">Bonus for 6</span></div>
+        <div class="cbody">
+          <p>Ava, Ben, Cara and Dev each competed in a different event (Astronomy, Codebusters, Forensics or Helicopter) and finished in a different place, 1st through 4th.</p>
+          <ol>
+            <li>The Codebusters competitor beat everyone.</li>
+            <li>Cara finished last, but she didn't compete in Astronomy or Forensics.</li>
+            <li>Ava finished directly behind Dev.</li>
+            <li>Ben didn't compete in Forensics or Astronomy.</li>
+            <li>The Astronomy competitor finished ahead of the Forensics competitor.</li>
+          </ol>
+          <p><b>Your answer:</b> Ava's place plus Dev's place.</p>
+        </div>
+      </article>
+
+      <article class="card" id="p2" data-n="2">
+        <div class="chead"><span class="badge">2</span><div class="ctitle"><span class="ctype">Geography</span><h2>Coastlines</h2></div><span class="helps">Bonus for 1</span></div>
+        <div class="cbody">
+          <p>Name each country. Their first letters, in order, spell the answer.</p>
+          <ol>
+            <li>Its coast includes the Bay of Biscay, and it gave the world the metric system.</li>
+            <li>It hosted and won the very first FIFA World Cup, in 1930.</li>
+            <li>Its Skeleton Coast is lined with shipwrecks, and it shares its name with one of Earth's oldest deserts.</li>
+            <li>Its capital is Accra, and its flag has a black star in the center.</li>
+            <li>It sits right on top of a mid-ocean ridge, covered in volcanoes and glaciers.</li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="card" id="p3" data-n="3">
+        <div class="chead"><span class="badge">3</span><div class="ctitle"><span class="ctype">Riddles</span><h2>Look up</h2></div><span class="helps">Bonus for 5</span></div>
+        <div class="cbody">
+          <p>Solve each riddle. The first letters of the four answers spell this puzzle's answer.</p>
+          <ol>
+            <li>I'm the closest star to you, yet you're always told never to look straight at me.</li>
+            <li>You can hear me but never see me, and I always show up after my brighter partner.</li>
+            <li>I'm a glowing curtain of green and pink, hung in the night by the solar wind. You'll see me best near the poles.</li>
+            <li>I appear when sunshine meets rain. I have seven colors but no paint, and no one has ever reached my end.</li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="card" id="p4" data-n="4">
+        <div class="chead"><span class="badge">4</span><div class="ctitle"><span class="ctype">Number</span><h2>Missing digit</h2></div><span class="helps">Bonus for 6</span></div>
+        <div class="cbody">
+          <p>What number fills the gap?</p>
+          <div class="seq" aria-label="3, 1, 4, 1, blank, 9, 2, 6, 5, 3"><span>3</span><span>1</span><span>4</span><span>1</span><span class="gap">?</span><span>9</span><span>2</span><span>6</span><span>5</span><span>3</span></div>
+        </div>
+      </article>
+
+      <article class="card" id="p5" data-n="5">
+        <div class="chead"><span class="badge">5</span><div class="ctitle"><span class="ctype">Elements</span><h2>Atomic spelling</h2></div><span class="helps">Bonus for 2</span></div>
+        <div class="cbody">
+          <p>Work out each expression to get an atomic number. Swap each number for its element's symbol, then read the symbols in order.</p>
+          <div class="exprs"><span>2⁴</span><span>4² + 3</span><span>3 × 13</span></div>
+        </div>
+      </article>
+
+      <article class="card" id="p6" data-n="6">
+        <div class="chead"><span class="badge">6</span><div class="ctitle"><span class="ctype">Cipher</span><h2>Shifted message</h2></div><span class="helps">Bonus for 2</span></div>
+        <div class="cbody">
+          <p>Every letter in this message moved forward the same number of places in the alphabet. Another puzzle tells you how many, or you can try all 25 shifts.</p>
+          <div class="cipher">FQQ TK YMJR GTWIJW YMJ FYQFSYNH</div>
+          <p><b>Your answer:</b> the last word of the decoded message.</p>
+        </div>
+      </article>
+
+      <article class="card final" id="p7" style="grid-column:1/-1">
+        <div class="chead"><span class="badge">★</span><div class="ctitle"><span class="ctype">Final puzzle</span><h2>The last word</h2></div></div>
+        <div class="cbody">
+          <p>Each solved puzzle drops its highlighted letter here, in puzzle order. Number answers become letters (A = 1, B = 2, and so on). You can guess before every letter is in.</p>
+          <div class="tiles" id="metaTiles"></div>
+        </div>
+        <form class="answer" id="metaForm">
+          <input id="metaInput" autocomplete="off" spellcheck="false" aria-label="Final answer">
+          <button class="btn" type="submit">Check</button>
+        </form>
+        <div class="fb" id="metaFb" role="status"></div>
+      </article>
+    </div>
+  </section>
+
+  <footer><button class="linkish" id="openHost" type="button">Hosting this game? Open host tools</button></footer>
+</main>
+
+<dialog id="hostDlg" aria-labelledby="hostTitle">
+  <div class="dlg">
+    <div class="row" style="justify-content:space-between;align-items:center"><h2 id="hostTitle">Host tools</h2><button class="btn ghost" type="button" id="closeHost">Close</button></div>
+    <p class="note">Players, no peeking. This panel holds the answers.</p>
+    <h3>Check a finish code</h3>
+    <p class="note">The code also tells you the team's time, with hint penalties included.</p>
+    <div class="row">
+      <input id="chkTeam" class="field" placeholder="Team name" autocomplete="off">
+      <input id="chkCode" class="field" placeholder="Code" autocomplete="off" style="flex-basis:110px">
+    </div>
+    <div><button class="btn" type="button" id="chkBtn">Check code</button></div>
+    <div class="result" id="chkResult" role="status"></div>
+    <h3>Answer key</h3>
+    <div><button class="btn ghost" type="button" id="keyBtn">Show answers</button></div>
+    <ol class="key" id="key" hidden></ol>
+    <h3>This device</h3>
+    <p class="note">Clears the team name, timer and progress saved on this device.</p>
+    <div class="confirm" id="resetArea"><button class="btn ghost" type="button" id="resetBtn">Clear progress on this device</button></div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  var PUZ={
+    1:{enc:["NQ==","RVZJRg=="],num:true,helps:6,
+       bonus:"For Puzzle 6: this number is the cipher's shift. Move each letter 5 places back.",
+       hint:"Clues 1 and 2 together tell you Cara's event. Then clue 4 places Ben."},
+    2:{enc:["SUdOVUY="],idx:1,helps:1,
+       bonus:"For Puzzle 1: Ben was the Codebusters competitor.",
+       hint:"The first three countries are France, Uruguay and Namibia."},
+    3:{enc:["UkFUUw=="],idx:3,helps:5,
+       bonus:"For Puzzle 5: the middle element is potassium.",
+       hint:"The first two answers are SUN and THUNDER."},
+    4:{enc:["NQ==","RVZJRg=="],num:true,helps:6,
+       bonus:"For Puzzle 6: this number is also the cipher's shift. Move each letter 5 places back.",
+       hint:"These are the opening digits of a famous number that starts 3.14…"},
+    5:{enc:["WUtT"],idx:1,helps:2,
+       bonus:"For Puzzle 2: the third country is Namibia.",
+       hint:"The expressions work out to 16, 19 and 39. Look those up on a periodic table."},
+    6:{enc:["Q0lUTkFMVEE="],idx:0,helps:2,
+       bonus:"For Puzzle 2: the countries are in Europe, South America, Africa, Africa and Europe, in that order.",
+       hint:"Shift each letter back by the same amount. Try turning F into A."}
+  };
+  var META=["QUtFUlVF"], KEY="crosslinks:v1", PENALTY=180000, ALPH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789", SALT="crosslinks-demo";
+  var dec=function(s){return atob(s).split("").reverse().join("")};
+  var answers=function(n){return PUZ[n].enc.map(dec)};
+  var primary=function(n){return answers(n)[0]};
+  var norm=function(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"")};
+  var normTeam=function(t){return String(t||"").trim().toLowerCase().replace(/\s+/g," ")};
+  var $=function(id){return document.getElementById(id)};
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function fresh(){return {team:"",startedAt:0,finishedAt:0,solved:{},hints:{}}}
+  var S=fresh();
+  try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&typeof p.solved==="object")S=p}}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+  function hintsUsed(){var c=0;for(var k in S.hints)if(S.hints[k])c++;return c}
+  function solvedCount(){var c=0;for(var n=1;n<=6;n++)if(S.solved[n])c++;return c}
+  function rawMs(){return S.startedAt?((S.finishedAt||Date.now())-S.startedAt):0}
+  function adjMs(){return rawMs()+hintsUsed()*PENALTY}
+  function fmt(ms){var t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;
+    return (h?h+":"+(m<10?"0":"")+m:m)+":"+(s<10?"0":"")+s}
+  function letterFor(n){var a=primary(n);return PUZ[n].num?String.fromCharCode(64+parseInt(a,10)):a[PUZ[n].idx]}
+  function hash(str){var h=0x811c9dc5;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)>>>0}
+    var out="";for(var j=0;j<5;j++){out+=ALPH[h%32];h=Math.floor(h/32)}return out}
+  function codeFor(team,secs){return hash(normTeam(team)+"|"+secs+"|"+SALT)}
+
+
+  /* cards */
+  var UI={};
+  function tilesFor(n,box){
+    box.innerHTML="";var solved=S.solved[n],p=PUZ[n];
+    if(p.num){
+      var t=document.createElement("span");t.className="tile";t.textContent=solved?primary(n):"";box.appendChild(t);
+      var ar=document.createElement("span");ar.className="arrow";ar.textContent="→";box.appendChild(ar);
+      var t2=document.createElement("span");t2.className="tile hl";t2.textContent=solved?letterFor(n):"";box.appendChild(t2);
+      var lab=document.createElement("span");lab.className="note";lab.textContent="A number, turned into a letter (A = 1)";box.appendChild(lab);
+    }else{
+      var a=primary(n);
+      for(var i=0;i<a.length;i++){var c=document.createElement("span");c.className="tile"+(i===p.idx?" hl":"");c.textContent=solved?a[i]:"";box.appendChild(c)}
+    }
+  }
+  for(var n=1;n<=6;n++)(function(n){
+    var card=$("p"+n);
+    var tiles=document.createElement("div");tiles.className="tiles";
+    var form=document.createElement("form");form.className="answer";
+    var inp=document.createElement("input");inp.id="ans"+n;inp.autocomplete="off";inp.spellcheck=false;inp.setAttribute("aria-label","Answer to puzzle "+n);
+    var btn=document.createElement("button");btn.className="btn";btn.type="submit";btn.textContent="Check";
+    form.appendChild(inp);form.appendChild(btn);
+    var fb=document.createElement("div");fb.className="fb";fb.setAttribute("role","status");
+    var bonus=document.createElement("div");bonus.className="bonus";bonus.hidden=true;
+    var hintRow=document.createElement("div");hintRow.className="hintrow";
+    var hb=document.createElement("button");hb.type="button";hb.className="hintbtn";hb.textContent="Show hint (+3:00)";
+    var conf=document.createElement("span");conf.className="confirm";conf.hidden=true;
+    conf.innerHTML='Add 3 minutes to your time? ';
+    var yes=document.createElement("button");yes.type="button";yes.className="hintbtn";yes.textContent="Yes, show it";
+    var no=document.createElement("button");no.type="button";no.className="linkish";no.textContent="Cancel";
+    conf.appendChild(yes);conf.appendChild(no);
+    hintRow.appendChild(hb);hintRow.appendChild(conf);
+    var ht=document.createElement("div");ht.className="hinttext";ht.hidden=true;
+    card.appendChild(tiles);card.appendChild(form);card.appendChild(fb);card.appendChild(bonus);card.appendChild(hintRow);card.appendChild(ht);
+    UI[n]={card:card,tiles:tiles,form:form,inp:inp,btn:btn,fb:fb,bonus:bonus,hintRow:hintRow,hb:hb,conf:conf,ht:ht};
+
+    form.addEventListener("submit",function(e){
+      e.preventDefault();if(S.solved[n]||S.finishedAt)return;
+      var v=norm(inp.value);if(!v){fb.className="fb bad";fb.textContent="Type an answer first.";return}
+      if(answers(n).indexOf(v)>=0){S.solved[n]=true;save();render()}
+      else{fb.className="fb bad";fb.textContent="Not quite. Check the spelling and try again."}
+    });
+    hb.addEventListener("click",function(){hb.hidden=true;conf.hidden=false;yes.focus()});
+    no.addEventListener("click",function(){conf.hidden=true;hb.hidden=false;hb.focus()});
+    yes.addEventListener("click",function(){S.hints[n]=true;save();render()});
+  })(n);
+
+  function render(){
+    $("teamLabel").textContent=S.team;
+    $("solvedCount").textContent=solvedCount()+"/6";
+    var hu=hintsUsed();$("hintCount").textContent=hu+(hu?" (+"+(hu*3)+":00)":"");
+    for(var n=1;n<=6;n++){
+      var u=UI[n],solved=!!S.solved[n],p=PUZ[n];
+      u.card.classList.toggle("solved",solved);
+      tilesFor(n,u.tiles);
+      u.form.hidden=solved;
+      if(solved){u.fb.className="fb ok";u.fb.textContent="Solved: "+primary(n)}
+      else if(u.fb.className.indexOf("ok")>=0){u.fb.textContent="";u.fb.className="fb"}
+      u.bonus.hidden=!solved;
+      if(solved){u.bonus.innerHTML="";var b=document.createElement("b");b.textContent="Bonus clue. ";u.bonus.appendChild(b);u.bonus.appendChild(document.createTextNode(p.bonus))}
+      var used=!!S.hints[n];
+      u.hintRow.hidden=used||solved;
+      u.ht.hidden=!used;
+      if(used){u.ht.innerHTML="";var hb=document.createElement("b");hb.textContent="Hint. ";u.ht.appendChild(hb);u.ht.appendChild(document.createTextNode(p.hint))}
+      if(!used&&!solved&&u.conf.hidden)u.hb.hidden=false;
+    }
+    var mt=$("metaTiles");mt.innerHTML="";
+    for(var k=1;k<=6;k++){var t=document.createElement("span");t.className="tile hl";t.textContent=S.solved[k]?letterFor(k):"";t.setAttribute("aria-label","Letter from puzzle "+k+(S.solved[k]?": "+letterFor(k):": not yet solved"));mt.appendChild(t)}
+    var done=!!S.finishedAt;
+    $("metaForm").hidden=done;
+    if(done){$("metaFb").className="fb ok";$("metaFb").textContent="Solved: "+dec(META[0])}
+    $("p7").classList.toggle("solved",done);
+    $("finish").hidden=!done;
+    if(done){
+      var secs=Math.floor(adjMs()/1000);
+      $("finishCode").textContent=codeFor(S.team,secs);
+      $("finishMeta").textContent=S.team+" finished in "+fmt(secs*1000)+(hu?" ("+fmt(rawMs())+" plus "+hu+" hint"+(hu>1?"s":"")+")":"")+".";
+    }
+    tick();
+  }
+  function tick(){if(S.startedAt)$("timer").textContent=fmt(adjMs())}
+  setInterval(tick,1000);
+
+  $("metaForm").addEventListener("submit",function(e){
+    e.preventDefault();if(S.finishedAt)return;
+    var v=norm($("metaInput").value),fb=$("metaFb");
+    if(!v){fb.className="fb bad";fb.textContent="Type an answer first.";return}
+    if(v===dec(META[0])){S.finishedAt=Date.now();save();render();$("finish").scrollIntoView({block:"start",behavior:reduce?"auto":"smooth"})}
+    else{fb.className="fb bad";fb.textContent="Not the final word yet. More letters might help."}
+  });
+
+  function showView(){
+    var playing=!!S.team;
+    $("startView").hidden=playing;$("gameView").hidden=!playing;
+    render();
+  }
+  $("startForm").addEventListener("submit",function(e){
+    e.preventDefault();var name=$("teamName").value.trim();if(!name)return;
+    S=fresh();S.team=name;S.startedAt=Date.now();save();showView();
+    $("gameView").scrollIntoView({block:"start",behavior:reduce?"auto":"smooth"});
+  });
+
+  /* host tools */
+  var dlg=$("hostDlg");
+  function openDlg(){if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","")}
+  function closeDlg(){if(dlg.close)dlg.close();else dlg.removeAttribute("open")}
+  $("openHost").addEventListener("click",openDlg);
+  $("closeHost").addEventListener("click",closeDlg);
+  $("chkBtn").addEventListener("click",function(){
+    var t=$("chkTeam").value,c=norm($("chkCode").value),r=$("chkResult");
+    if(!normTeam(t)||!c){r.className="result bad";r.textContent="Enter both the team name and the code.";return}
+    for(var s=0;s<=6*3600;s++){if(codeFor(t,s)===c){r.className="result ok";r.textContent="Valid. "+t.trim()+" finished in "+fmt(s*1000)+", hint penalties included.";return}}
+    r.className="result bad";r.textContent="That code doesn't match. Check the team name is spelled exactly as they entered it.";
+  });
+  $("keyBtn").addEventListener("click",function(){
+    var k=$("key");
+    if(k.hidden){k.innerHTML="";for(var n=1;n<=6;n++){var li=document.createElement("li");li.textContent=primary(n)+(PUZ[n].num?" (letter "+letterFor(n)+")":"");k.appendChild(li)}
+      var li=document.createElement("li");li.value=7;li.textContent="Final: "+dec(META[0]);k.appendChild(li);k.hidden=false;this.textContent="Hide answers"}
+    else{k.hidden=true;this.textContent="Show answers"}
+  });
+  function resetArea(){
+    var a=$("resetArea");a.innerHTML="";
+    var b=document.createElement("button");b.className="btn ghost";b.type="button";b.textContent="Clear progress on this device";
+    b.addEventListener("click",function(){
+      a.innerHTML="";a.appendChild(document.createTextNode("Clear this device's team, timer and answers? "));
+      var y=document.createElement("button");y.className="btn";y.type="button";y.textContent="Yes, clear it";
+      var n=document.createElement("button");n.className="linkish";n.type="button";n.textContent="Cancel";
+      y.addEventListener("click",function(){try{localStorage.removeItem(KEY)}catch(e){}S=fresh();
+        for(var i=1;i<=6;i++){UI[i].inp.value="";UI[i].fb.textContent="";UI[i].conf.hidden=true}
+        $("metaInput").value="";$("metaFb").textContent="";$("teamName").value="";resetArea();closeDlg();showView()});
+      n.addEventListener("click",resetArea);
+      a.appendChild(y);a.appendChild(n);y.focus();
+    });
+    a.appendChild(b);
+  }
+  resetArea();
+
+  showView();
+})();
+</script>
+
+</body>
+</html>

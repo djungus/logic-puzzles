@@ -101,17 +101,7 @@ button,input{font:inherit}
 .finish{background:var(--ok-bg);border:2px solid var(--ok);border-radius:16px;padding:22px;text-align:center;display:flex;flex-direction:column;gap:6px}
 .code{font-family:var(--display);font-weight:700;font-size:clamp(2.4rem,9vw,3.4rem);letter-spacing:.16em;color:var(--ok);font-variant-numeric:tabular-nums}
 
-/* host */
-footer{text-align:center}
 .linkish{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:6px}
-dialog{border:0;border-radius:16px;background:var(--surface);color:var(--ink);padding:0;width:min(560px,calc(100% - 32px));max-height:calc(100% - 40px)}
-dialog::backdrop{background:rgba(8,12,22,.55)}
-.dlg{padding:22px;display:flex;flex-direction:column;gap:12px}
-.dlg h3{font-size:1.05rem;margin-top:8px}
-.dlg .note{margin:0}
-.key{margin:0;padding-left:1.4em}
-.result{font-weight:700;min-height:1.4em}
-.result.ok{color:var(--ok)} .result.bad{color:var(--bad)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -227,29 +217,7 @@ dialog::backdrop{background:rgba(8,12,22,.55)}
     </div>
   </section>
 
-  <footer><button class="linkish" id="openHost" type="button">Hosting this game? Open host tools</button></footer>
 </main>
-
-<dialog id="hostDlg" aria-labelledby="hostTitle">
-  <div class="dlg">
-    <div class="row" style="justify-content:space-between;align-items:center"><h2 id="hostTitle">Host tools</h2><button class="btn ghost" type="button" id="closeHost">Close</button></div>
-    <p class="note">Players, no peeking. This panel holds the answers.</p>
-    <h3>Check a finish code</h3>
-    <p class="note">The code also tells you the team's time, with hint penalties included.</p>
-    <div class="row">
-      <input id="chkTeam" class="field" placeholder="Team name" autocomplete="off">
-      <input id="chkCode" class="field" placeholder="Code" autocomplete="off" style="flex-basis:110px">
-    </div>
-    <div><button class="btn" type="button" id="chkBtn">Check code</button></div>
-    <div class="result" id="chkResult" role="status"></div>
-    <h3>Answer key</h3>
-    <div><button class="btn ghost" type="button" id="keyBtn">Show answers</button></div>
-    <ol class="key" id="key" hidden></ol>
-    <h3>This device</h3>
-    <p class="note">Clears the team name, timer and progress saved on this device.</p>
-    <div class="confirm" id="resetArea"><button class="btn ghost" type="button" id="resetBtn">Clear progress on this device</button></div>
-  </div>
-</dialog>
 
 <script>
 (function(){
@@ -399,41 +367,6 @@ dialog::backdrop{background:rgba(8,12,22,.55)}
     S=fresh();S.team=name;S.startedAt=Date.now();save();showView();
     $("gameView").scrollIntoView({block:"start",behavior:reduce?"auto":"smooth"});
   });
-
-  /* host tools */
-  var dlg=$("hostDlg");
-  function openDlg(){if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","")}
-  function closeDlg(){if(dlg.close)dlg.close();else dlg.removeAttribute("open")}
-  $("openHost").addEventListener("click",openDlg);
-  $("closeHost").addEventListener("click",closeDlg);
-  $("chkBtn").addEventListener("click",function(){
-    var t=$("chkTeam").value,c=norm($("chkCode").value),r=$("chkResult");
-    if(!normTeam(t)||!c){r.className="result bad";r.textContent="Enter both the team name and the code.";return}
-    for(var s=0;s<=6*3600;s++){if(codeFor(t,s)===c){r.className="result ok";r.textContent="Valid. "+t.trim()+" finished in "+fmt(s*1000)+", hint penalties included.";return}}
-    r.className="result bad";r.textContent="That code doesn't match. Check the team name is spelled exactly as they entered it.";
-  });
-  $("keyBtn").addEventListener("click",function(){
-    var k=$("key");
-    if(k.hidden){k.innerHTML="";for(var n=1;n<=6;n++){var li=document.createElement("li");li.textContent=primary(n)+(PUZ[n].num?" (letter "+letterFor(n)+")":"");k.appendChild(li)}
-      var li=document.createElement("li");li.value=7;li.textContent="Final: "+dec(META[0]);k.appendChild(li);k.hidden=false;this.textContent="Hide answers"}
-    else{k.hidden=true;this.textContent="Show answers"}
-  });
-  function resetArea(){
-    var a=$("resetArea");a.innerHTML="";
-    var b=document.createElement("button");b.className="btn ghost";b.type="button";b.textContent="Clear progress on this device";
-    b.addEventListener("click",function(){
-      a.innerHTML="";a.appendChild(document.createTextNode("Clear this device's team, timer and answers? "));
-      var y=document.createElement("button");y.className="btn";y.type="button";y.textContent="Yes, clear it";
-      var n=document.createElement("button");n.className="linkish";n.type="button";n.textContent="Cancel";
-      y.addEventListener("click",function(){try{localStorage.removeItem(KEY)}catch(e){}S=fresh();
-        for(var i=1;i<=6;i++){UI[i].inp.value="";UI[i].fb.textContent="";UI[i].conf.hidden=true}
-        $("metaInput").value="";$("metaFb").textContent="";$("teamName").value="";resetArea();closeDlg();showView()});
-      n.addEventListener("click",resetArea);
-      a.appendChild(y);a.appendChild(n);y.focus();
-    });
-    a.appendChild(b);
-  }
-  resetArea();
 
   showView();
 })();
